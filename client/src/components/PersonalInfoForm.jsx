@@ -1,11 +1,9 @@
 import { BriefcaseBusiness, Mail, MapPin, Phone, User, Linkedin, Github, Globe } from 'lucide-react'
-import React from 'react'
 
 const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackground }) => {
     const handleChange = (field, value) => {
         onChange({ ...data, [field]: value })
     }
-    console.log('personal info form data', data);
     const fields = [
         { key: 'full_name', label: 'Full Name', icon: User, type: 'text', required: true },
         { key: 'email', label: 'Email', icon: Mail, type: 'email', required: true },
@@ -34,7 +32,7 @@ const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackgroun
                     <input type="file" accept='image/jpeg, image/png' className='hidden' onChange={(e) => handleChange("image", e.target.files[0])} />
                 </label>
 
-                {typeof data.image === 'object' && (
+                {typeof data?.image === 'object' && (
                     <div className="flex flex-col gap-1 pl-4 text-sm">
                         <p>Remove Background</p>
                         <label className='relative inline-flex items-center cursor-pointer text-gray-900 gap-3'>
