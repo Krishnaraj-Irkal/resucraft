@@ -12,9 +12,9 @@ export const createResume = async (req,res) => {
         // Create new resume
         const newResume = await Resume.create({ userId, title })
         return res.status(201).json({message:'Resume created successfully',resume: newResume})
-        
+
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
@@ -29,9 +29,9 @@ export const deleteResume = async (req,res) => {
         // Delete a resume
         await Resume.findOneAndDelete({ userId, _id:resumeId })
         return res.status(200).json({message:'Resume deleted successfully'})
-        
+
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
@@ -52,13 +52,13 @@ export const getResumeById = async (req,res) => {
         resume.updatedAt=undefined;
 
         return res.status(200).json({resume})
-        
+
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
-// Get reusme by id if public
+// Get resume by id if public
 // GET: /api/resumes/public
 
 export const getPublicResumeById = async (req, res) => {
@@ -71,7 +71,7 @@ export const getPublicResumeById = async (req, res) => {
         return res.status(200).json({resume})
 
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
@@ -110,6 +110,6 @@ export const updateResume = async (req,res) => {
         return res.status(200).json({message:'Resume updated successfully',resume})
 
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }

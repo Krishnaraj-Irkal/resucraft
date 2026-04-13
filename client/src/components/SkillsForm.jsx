@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Plus, Sparkles, X } from 'lucide-react'
 
-const SkillsFrom = ({data,onChange}) => {
+const SkillsForm = ({data,onChange}) => {
     const [newSkills,setNewSkills] = useState("")
     const addSkills = () => {
         if(newSkills.trim() && !data.includes(newSkills.trim())) {
@@ -59,4 +59,4 @@ const SkillsFrom = ({data,onChange}) => {
   )
 }
 
-export default SkillsFrom
+export default SkillsForm

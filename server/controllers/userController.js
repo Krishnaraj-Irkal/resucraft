@@ -44,7 +44,7 @@ export const registerUser = async (req,res) => {
         })
 
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
@@ -79,7 +79,7 @@ export const loginUser = async (req,res) => {
         return res.status(200).json({message:'Login Successfully', token, user})
 
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
@@ -109,7 +109,7 @@ export const verifyEmail = async (req, res) => {
         return res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
 
     } catch (error) {
-        return res.status(400).json({ message: error.message });
+        return res.status(500).json({ message: 'Something went wrong. Please try again.' });
     }
 }
 
@@ -130,7 +130,7 @@ export const getUserById = async (req,res) => {
         return res.status(200).json({ user})
 
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }
 
@@ -145,8 +145,8 @@ export const getUserResumes = async(req,res) => {
         //return user resumes
         const resumes = await Resume.find({userId})
         return res.status(200).json({resumes})
-        
+
     } catch (error) {
-        return res.status(400).json({message:error.message})
+        return res.status(500).json({message:'Something went wrong. Please try again.'})
     }
 }

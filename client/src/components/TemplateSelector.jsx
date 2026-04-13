@@ -1,7 +1,7 @@
 import { Check, Layout } from 'lucide-react';
 import React, { useState } from 'react'
 
-const TemeplateSelector = ({ selectedTemplate, onChange }) => {
+const TemplateSelector = ({ selectedTemplate, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const templates = [
@@ -56,4 +56,4 @@ const TemeplateSelector = ({ selectedTemplate, onChange }) => {
     )
 }
 
-export default TemeplateSelector
+export default TemplateSelector

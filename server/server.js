@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import multer from "multer";
-import mongoSanitize from "express-mongo-sanitize";
 import "dotenv/config";
 import connectDB from "./config/db.js";
 import userRouter from "./routes/userRoutes.js";
@@ -22,8 +21,23 @@ app.use(cors({
     credentials: true,
 }));
 
-// Strip $ and . keys from req.body/params/query to prevent NoSQL injection
-app.use(mongoSanitize());
+// Strip keys starting with $ or containing . from req.body to prevent NoSQL injection
+// (express-mongo-sanitize is incompatible with Express 5 — req.query is read-only)
+app.use((req, _res, next) => {
+    if (req.body && typeof req.body === 'object') {
+        const sanitize = (obj) => {
+            for (const key of Object.keys(obj)) {
+                if (key.startsWith('$') || key.includes('.')) {
+                    delete obj[key];
+                } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    sanitize(obj[key]);
+                }
+            }
+        };
+        sanitize(req.body);
+    }
+    next();
+});
 
 app.get('/', (_req, res) => res.send('Server is Live'))
 
