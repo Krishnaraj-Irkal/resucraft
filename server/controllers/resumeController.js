@@ -61,12 +61,10 @@ export const getResumeById = async (req,res) => {
 // Get reusme by id if public
 // GET: /api/resumes/public
 
-export const getPublicResumeById = async (req,res) => {
-    console.log('getPublicResumeById called with resumeId:', req.params.resumeId);
+export const getPublicResumeById = async (req, res) => {
     try {
         const {resumeId} =req.params;
-        const resume = await Resume.findOne({public:true, _id:resumeId})
-        console.log(resume)
+        const resume = await Resume.findOne({ public: true, _id: resumeId })
         if(!resume) {
             return res.status(404).json({message:"Resume cannot be found"})
         }

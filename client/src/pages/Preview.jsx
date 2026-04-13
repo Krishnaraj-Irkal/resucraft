@@ -30,7 +30,7 @@ const Preview = () => {
     return resumeData ? (
         <div className='bg-slate-100'>
             <div className="max-3xl mx-auto py-10">
-                <ResumePreview data={resumeData} template={resumeData.template} accentColor={resumeData.color} classes='py-4 bg-white' />
+                <ResumePreview data={resumeData} template={resumeData.template} accentColor={resumeData.accent_color} classes='py-4 bg-white' />
             </div>
         </div>
     ) : (

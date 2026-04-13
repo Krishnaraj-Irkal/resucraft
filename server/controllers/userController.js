@@ -1,7 +1,9 @@
+import crypto from 'crypto';
 import User from "../models/User.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import Resume from "../models/Resume.js";
+import { sendVerificationEmail } from '../config/mailer.js';
 
 const generateToken = (userId) => {
     const token = jwt.sign({userId}, process.env.JWT_SECRET,{expiresIn:'7d'})
@@ -14,33 +16,37 @@ export const registerUser = async (req,res) => {
     try {
         const {name,email,password} =req.body;
 
-        // check if required fields are present
-        if(!name || !email || !password) {
-            return res.status(400).json({message: 'Missing required fields'});
-        }
-
         //Check if user already exists
         const user = await User.findOne({email})
         if(user) {
-            return res.status(400).json({message:'User already exists'})
+            return res.status(409).json({message:'An account with this email already exists'})
         }
 
-        // Create new user
+        // Create new user with a verification token
         const hashedPassword = await bcrypt.hash(password,10);
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
         const newUser = await User.create({
-            name, email, password: hashedPassword
+            name, email, password: hashedPassword,
+            verificationToken, verificationTokenExpiry,
         })
 
-        //generate and return the token with success message
-        const token = generateToken(newUser._id);
-        newUser.password = undefined;
+        // Send verification email (non-blocking — don't fail registration if email fails)
+        sendVerificationEmail(email, verificationToken).catch(() => {});
 
-        return res.status(201).json({message:'User created Successfully', token, user:newUser})
-    
+        newUser.password = undefined;
+        newUser.verificationToken = undefined;
+
+        return res.status(201).json({
+            message: 'Account created. Please check your email to verify your account before logging in.',
+            user: newUser,
+        })
+
     } catch (error) {
         return res.status(400).json({message:error.message})
     }
-} 
+}
 
 
 //Controller for user login
@@ -55,21 +61,57 @@ export const loginUser = async (req,res) => {
             return res.status(400).json({message:'Invalid email or password'})
         }
 
+        // Block unverified users
+        if(!user.isVerified) {
+            return res.status(403).json({message:'Please verify your email address before logging in. Check your inbox for the verification link.'})
+        }
+
         // Verify password is correct
-        if(!user.comparePassword(password)) {
+        const isMatch = user.comparePassword(password);
+        if(!isMatch) {
             return res.status(400).json({message:'Invalid email or password'})
         }
-        
+
         //return success message
         const token = generateToken(user._id);
         user.password = undefined;
 
         return res.status(200).json({message:'Login Successfully', token, user})
-    
+
     } catch (error) {
         return res.status(400).json({message:error.message})
     }
-} 
+}
+
+// Controller for email verification
+// GET: /api/users/verify-email?token=...
+export const verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.query;
+        if (!token) {
+            return res.status(400).json({ message: 'Verification token is missing' });
+        }
+
+        const user = await User.findOne({
+            verificationToken: token,
+            verificationTokenExpiry: { $gt: new Date() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired verification link. Please register again.' });
+        }
+
+        user.isVerified = true;
+        user.verificationToken = null;
+        user.verificationTokenExpiry = null;
+        await user.save();
+
+        return res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
+
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+}
 
 // Controller for getting user by id
 //GET: /api/users/data

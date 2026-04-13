@@ -62,7 +62,7 @@ const EducationForm = ({ data, onChange }) => {
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <label className='text-sm font-medium text-gray-700'>Job Description</label>
+                                    <label className='text-sm font-medium text-gray-700'>Education Description</label>
                                     <button className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:'>
                                         <Sparkles className='w-3 h-3' /> Enhance with AI
                                     </button>
