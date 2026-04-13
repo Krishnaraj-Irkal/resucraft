@@ -7,9 +7,6 @@ import Resume from "../models/Resume.js";
 export const enhanceProfessionalSummary = async (req, res) => {
     try {
         const { userContent } = req.body
-        if (!userContent) {
-            return res.status(400).json({ message: 'Missing required field' })
-        }
 
         const response = await ai.models.generateContent({
             model: process.env.GEMINI_MODEL,
@@ -20,7 +17,7 @@ export const enhanceProfessionalSummary = async (req, res) => {
         const enhancedContent = response.text;
         return res.status(200).json({ enhancedContent })
     } catch (error) {
-        return res.status(400).json({ message: error.message })
+        return res.status(500).json({ message: 'Something went wrong. Please try again.' })
     }
 }
 
@@ -30,9 +27,6 @@ export const enhanceProfessionalSummary = async (req, res) => {
 export const enhanceJobDescription = async (req, res) => {
     try {
         const { userContent } = req.body
-        if (!userContent) {
-            return res.status(400).json({ message: 'Missing required field' })
-        }
 
         const response = await ai.models.generateContent({
             model: process.env.GEMINI_MODEL,
@@ -43,7 +37,7 @@ export const enhanceJobDescription = async (req, res) => {
         const enhancedContent = response.text;
         return res.status(200).json({ enhancedContent })
     } catch (error) {
-        return res.status(400).json({ message: error.message })
+        return res.status(500).json({ message: 'Something went wrong. Please try again.' })
     }
 }
 
@@ -56,9 +50,6 @@ export const uploadResume = async (req, res) => {
         const { resumeText,title } = req.body;
         const userId = req.userId;
 
-        if (!resumeText) {
-            return res.status(400).json({ message: 'Missing required field' });
-        }
         const userPrompt = `Extract data from this resume: ${resumeText}.
         Provide data in the following JSON format with no additional text before or after:
         {
