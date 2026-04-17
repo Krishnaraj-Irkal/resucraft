@@ -1,11 +1,18 @@
-import { Briefcase, Loader2, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { Briefcase, Loader2, Plus, Sparkles, Trash2, Undo2 } from 'lucide-react'
 import api from '../configs/api';
 import toast from 'react-hot-toast';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 
 const ExperienceForm = ({ data, onChange }) => {
     const [generatingIndex, setGeneratingIndex] = useState(-1);
+    // Map of index → previous description value, cleared after 10s
+    const [undoMap, setUndoMap] = useState({});
+    const undoTimersRef = useRef({});
+
+    useEffect(() => {
+        return () => Object.values(undoTimersRef.current).forEach(clearTimeout);
+    }, []);
 
     const addExperience = () => {
         const newExperience = {
@@ -33,15 +40,27 @@ const ExperienceForm = ({ data, onChange }) => {
     const generateDescription = async (index) => {
         setGeneratingIndex(index);
         const experience = data[index];
+        const snapshot = experience.description;
         const prompt = `Enhance the job description for a position as ${experience.position} at ${experience.company} with the following responsibilities: ${experience.description}`;
         try {
-            const {data} = await api.post('/api/ai/enhance-job-desc', {userContent:prompt})
-            updateExperience(index,'description',data.enhancedContent);
+            const { data: resData } = await api.post('/api/ai/enhance-job-desc', { userContent: prompt })
+            updateExperience(index, 'description', resData.enhancedContent);
+            setUndoMap(prev => ({ ...prev, [index]: snapshot }));
+            clearTimeout(undoTimersRef.current[index]);
+            undoTimersRef.current[index] = setTimeout(() => {
+                setUndoMap(prev => { const next = { ...prev }; delete next[index]; return next; });
+            }, 10000);
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message)    
+            toast.error(error.userMessage || error.message)
         } finally {
             setGeneratingIndex(-1)
         }
+    }
+
+    const handleUndo = (index) => {
+        updateExperience(index, 'description', undoMap[index]);
+        setUndoMap(prev => { const next = { ...prev }; delete next[index]; return next; });
+        clearTimeout(undoTimersRef.current[index]);
     }
 
     return (
@@ -75,8 +94,8 @@ const ExperienceForm = ({ data, onChange }) => {
                             <div className="grid md:grid-cols-2 gap-3">
                                 <input type="text" value={experience.company || " "} onChange={(e) => updateExperience(index, "company", e.target.value)} placeholder='Company Name' className='px-3 py-2 text-sm rounded-lg' />
                                 <input type="text" value={experience.position || " "} onChange={(e) => updateExperience(index, "position", e.target.value)} placeholder='Position' className='px-3 py-2 text-sm rounded-lg' />
-                                <input type="month" value={experience.start_date || " "} onChange={(e) => updateExperience(index, "start_date", e.target.value)} className='px-3 py-2 text-sm rounded-lg' />
-                                <input type="month" value={experience.end_date || " "} onChange={(e) => updateExperience(index, "end_date", e.target.value)} className='px-3 py-2 text-sm rounded-lg disabled:bg-gray-100' disabled={experience.is_current} />
+                                <input type="month" value={experience.start_date || ""} onChange={(e) => updateExperience(index, "start_date", e.target.value)} className='px-3 py-2 text-sm rounded-lg' />
+                                <input type="month" value={experience.end_date || ""} onChange={(e) => updateExperience(index, "end_date", e.target.value)} className='px-3 py-2 text-sm rounded-lg disabled:bg-gray-100' disabled={experience.is_current} />
                             </div>
                             <label className='flex items-center gap-2'>
                                 <input type="checkbox" onChange={(e) => updateExperience(index, "is_current", e.target.checked ? true : false)} checked={experience.is_current || false} className='rounded border-gray-300 text-blue-600 focus:ring-blue-500' />
@@ -85,15 +104,21 @@ const ExperienceForm = ({ data, onChange }) => {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <label className='text-sm font-medium text-gray-700'>Job Description</label>
-                                    <button onClick={()=>generateDescription(index)} disabled={generatingIndex === index || !experience.position || !experience.company} className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200'>
-                                        {generatingIndex === index ? (
-                                            <Loader2 className='w-3 h-3 animate-spin' />
-                                        ) : (
-                                            <Sparkles className='w-3 h-3' />
+                                    <div className="flex items-center gap-2">
+                                        {undoMap[index] !== undefined && (
+                                            <button onClick={() => handleUndo(index)} className='flex items-center gap-1 px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors'>
+                                                <Undo2 className='w-3 h-3' /> Undo
+                                            </button>
                                         )}
-                                        
-                                         Enhance with AI
-                                    </button>
+                                        <button onClick={() => generateDescription(index)} disabled={generatingIndex === index || !experience.position || !experience.company} className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50'>
+                                            {generatingIndex === index ? (
+                                                <Loader2 className='w-3 h-3 animate-spin' />
+                                            ) : (
+                                                <Sparkles className='w-3 h-3' />
+                                            )}
+                                            Enhance with AI
+                                        </button>
+                                    </div>
                                 </div>
                                 <textarea rows={8} value={experience.description || ""} onChange={(e) => updateExperience(index, "description", e.target.value)} className='w-full text-sm px-3 py-2 rounded-lg resize-none' placeholder='Describe your key responsibilities and achievements...' />
                             </div>

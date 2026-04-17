@@ -2,12 +2,12 @@ import { Mail, Phone, MapPin, Linkedin, Globe, Github } from "lucide-react";
 
 const ClassicTemplate = ({ data, accentColor }) => {
     const formatDate = (dateStr) => {
-        if (!dateStr) return "";
-        const [year, month] = dateStr.split("-");
-        return new Date(year, month - 1).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short"
-        });
+        if (!dateStr || !dateStr.trim()) return "";
+        const [year, month] = dateStr.trim().split("-");
+        if (!year || !month) return "";
+        const d = new Date(Number(year), Number(month) - 1);
+        if (isNaN(d.getTime())) return "";
+        return d.toLocaleDateString("en-US", { year: "numeric", month: "short" });
     };
 
     return (

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, Briefcase, FileText, FolderIcon, GraduationCap, Sparkles, User, ChevronLeft, ChevronRight, Share2Icon, EyeIcon, EyeOffIcon, DownloadIcon } from 'lucide-react';
 import PersonalInfoForm from '../components/PersonalInfoForm';
@@ -42,6 +43,16 @@ const ResumeBuilder = () => {
 
     const activeSection = sections[activeSectionIndex]
 
+    const completionChecks = [
+        { label: 'Name, email & phone', done: !!(resumeData.personal_info?.full_name && resumeData.personal_info?.email && resumeData.personal_info?.phone) },
+        { label: 'Professional summary', done: !!(resumeData.professional_summary?.trim()) },
+        { label: 'At least 1 experience', done: resumeData.experience?.length > 0 },
+        { label: 'At least 1 education', done: resumeData.education?.length > 0 },
+        { label: 'At least 3 skills', done: resumeData.skills?.length >= 3 },
+        { label: 'At least 1 project', done: resumeData.project?.length > 0 },
+    ]
+    const completionScore = Math.round((completionChecks.filter(c => c.done).length / completionChecks.length) * 100)
+
     useEffect(() => {
         if (!resumeId) return;
         const fetchResumeData = async () => {
@@ -49,10 +60,9 @@ const ResumeBuilder = () => {
                 const { data } = await api.get('/api/resumes/get/' + resumeId)
                 if (data.resume) {
                     setResumeData(data.resume);
-                    document.title = data.resume.title;
                 }
             } catch (error) {
-                toast.error('Error fetching resume data:', error.message)
+                toast.error(error.userMessage || error.message)
             }
         }
         fetchResumeData();
@@ -67,7 +77,7 @@ const ResumeBuilder = () => {
             setResumeData({ ...resumeData, public: !resumeData.public })
             toast.success(data.message)
         } catch (error) {
-            toast.error('Error saving resume:', error.message)
+            toast.error(error.userMessage || error.message)
 
         }
     }
@@ -90,7 +100,7 @@ const ResumeBuilder = () => {
             setResumeData(data.resume);
             toast.success(data.message)
         } catch (error) {
-            toast.error('Error saving resume:', error.message)
+            toast.error(error.userMessage || error.message)
         }
 
     }
@@ -111,7 +121,8 @@ const ResumeBuilder = () => {
     }
 
     return (
-        <div >
+        <div>
+            <Helmet><title>{resumeData.title ? `${resumeData.title} — Edit` : 'Resume Builder'} — ResuCraft</title></Helmet>
             <div className="max-w-7xl mx-auto px-4 py-6 flex">
                 <Link to={'/app'} className='inline-flex gap-2 items-center text-slate-500 hover:text-slate-700 transition-all'>
                     <ArrowLeftIcon className='size-4' /> Back to Dashboard
@@ -140,6 +151,31 @@ const ResumeBuilder = () => {
                                     <button onClick={() => setActiveSectionIndex((prevIndex) => Math.min(prevIndex + 1, sections.length - 1))} disabled={activeSectionIndex === sections.length - 1} className={`flex items-center gap-1 p-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all ${activeSectionIndex === sections.length - 1 && 'opacity-50'}`}>
                                         Next <ChevronRight className='size-4' />
                                     </button>
+                                </div>
+                            </div>
+
+                            {/* Completeness Indicator */}
+                            <div className="mb-4">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs font-medium text-gray-600">Resume completeness</span>
+                                    <span className="text-xs font-semibold text-gray-700">{completionScore}%</span>
+                                </div>
+                                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{
+                                            width: `${completionScore}%`,
+                                            background: completionScore === 100 ? '#16a34a' : completionScore >= 60 ? '#f59e0b' : '#ef4444',
+                                        }}
+                                    />
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                                    {completionChecks.map((check) => (
+                                        <span key={check.label} className={`flex items-center gap-1 text-xs ${check.done ? 'text-green-600' : 'text-gray-400'}`}>
+                                            <span className="text-base leading-none">{check.done ? '✓' : '○'}</span>
+                                            {check.label}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
 

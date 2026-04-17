@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import ResumePreview from '../components/ResumePreview';
 import { ArrowLeftIcon } from 'lucide-react';
 import Loader from '../components/Loader';
@@ -29,6 +30,7 @@ const Preview = () => {
 
     return resumeData ? (
         <div className='bg-slate-100'>
+            <Helmet><title>{resumeData.personal_info?.full_name ? `${resumeData.personal_info.full_name} — Resume` : 'Resume'} — ResuCraft</title></Helmet>
             <div className="max-3xl mx-auto py-10">
                 <ResumePreview data={resumeData} template={resumeData.template} accentColor={resumeData.accent_color} classes='py-4 bg-white' />
             </div>

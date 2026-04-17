@@ -1,5 +1,6 @@
 import { Lock, Mail, User2Icon } from 'lucide-react'
 import React from 'react'
+import { Helmet } from 'react-helmet-async'
 import api from '../configs/api'
 import { useDispatch } from 'react-redux'
 import { login } from '../app/features/authSlice'
@@ -27,7 +28,7 @@ const Login = () => {
             }
             toast.success(data.message)
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message)
+            toast.error(error.userMessage || error.message)
         }
     }
 
@@ -38,6 +39,7 @@ const Login = () => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <Helmet><title>{state === 'login' ? 'Login' : 'Sign Up'} — ResuCraft</title></Helmet>
             <form onSubmit={handleSubmit} className="sm:w-[350px] w-full text-center border border-gray-300/60 rounded-2xl px-8 bg-white">
                 <h1 className="text-gray-900 text-3xl mt-10 font-medium">{state === "login" ? "Login" : "Sign up"}</h1>
                 <p className="text-gray-500 text-sm mt-2">Please {state} to continue</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import api from '../configs/api'
 
 const VerifyEmail = () => {
@@ -29,6 +30,7 @@ const VerifyEmail = () => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <Helmet><title>Verify Email — ResuCraft</title></Helmet>
             <div className="bg-white border border-gray-200 rounded-2xl p-10 max-w-sm w-full text-center shadow-sm">
                 {status === 'verifying' && (
                     <>
